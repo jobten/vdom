@@ -20,7 +20,7 @@
   <script>
 
 // 旧的 VNode
-const preVNode = createElement('div', null, [
+const prevVNode = createElement('div', null, [
   createElement('p', { key: 'a' ,style:{color:'blue'}}, '节点1'),
   createElement('p', { key: 'b' ,'@click':()=>{alert('呵呵')}}, '节点2'),
   createElement('p', { key: 'c' }, '节点3'),
@@ -36,7 +36,7 @@ const nextVNode = createElement('div', null, [
   createElement('p', { key: 'e' ,class:"item-header"}, '节点5'),
 ])
 
-render(preVNode, document.getElementById('app'))
+render(prevVNode, document.getElementById('app'))
 
 // 2秒后更新
 setTimeout(() => {

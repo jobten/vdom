@@ -4,7 +4,7 @@ const VNodeType = {
   HTML:'HTML',
   TEXT:'TEXT',
 }
-let ChildTypes = {
+let ChildTyps = {
   EMPTY:'EMPTY',
   SINGLE:'SINGLE',
   MULTIPLE:'MULTIPLE'
@@ -27,17 +27,17 @@ function createElement(tag, data = null, children = null) {
     const { length } = children
     if (length === 0) {
       // 没有 children
-      childFlags = ChildTypes.EMPTY
+      childFlags = ChildTyps.EMPTY
     } else {
       // 多个子节点，且子节点使用key
-      childFlags = ChildTypes.MULTIPLE
+      childFlags = ChildTyps.MULTIPLE
     }
   } else if (children == null) {
     // 没有子节点
-    childFlags = ChildTypes.EMPTY
+    childFlags = ChildTyps.EMPTY
   } else {
     // 其他情况都作为文本节点处理，即单个子节点，会调用 createTextVNode 创建纯文本类型的 VNode
-    childFlags = ChildTypes.SINGLE
+    childFlags = ChildTyps.SINGLE
     children = createTextVNode(children + '')
   }
 
@@ -62,17 +62,17 @@ function createTextVNode(text) {
     // 纯文本类型的 VNode，其 children 属性存储的是与之相符的文本内容
     children: text,
     // 文本节点没有子节点
-    childFlags: ChildTypes.EMPTY
+    childFlags: ChildTyps.EMPTY
   }
 }
 // 更新data
-function patchData(el, key, preValue, nextValue) {
+function patchData(el, key, prevValue, nextValue) {
   switch (key) {
     case 'style':
       for (let k in nextValue) {
         el.style[k] = nextValue[k]
       }
-      for (let k in preValue) {
+      for (let k in prevValue) {
         if (!nextValue.hasOwnProperty(k)) {
           el.style[k] = ''
         }
@@ -85,8 +85,8 @@ function patchData(el, key, preValue, nextValue) {
       if (key[0] === '@') {
         // 事件
         // 移除旧事件
-        if (preValue) {
-          el.removeEventListener(key.slice(1), preValue)
+        if (prevValue) {
+          el.removeEventListener(key.slice(1), prevValue)
         }
         // 添加新事件
         if (nextValue) {
@@ -102,14 +102,14 @@ function patchData(el, key, preValue, nextValue) {
 
 
 function render(vnode, container) {
-  const preVNode = container.vnode
-  if (preVNode == null) {
+  const prevVNode = container.vnode
+  if (prevVNode == null) {
       // 没有旧的 VNode，使用 `mount` 函数挂载全新的 VNode
       mount(vnode, container)
       // 将新的 VNode 添加到 container.vnode 属性下，这样下一次渲染时旧的 VNode 就存在了
   } else {
       // 有旧的 VNode，则调用 `patch` 函数打补丁
-      patch(preVNode, vnode, container)
+      patch(prevVNode, vnode, container)
       // 更新 container.vnode
   }
   container.vnode = vnode
@@ -139,10 +139,10 @@ function mountElement(vnode, container, refNode) {
 
   const childFlags = vnode.childFlags
   const children = vnode.children
-  if (childFlags !== ChildTypes.EMPTY) {
-    if (childFlags == ChildTypes.SINGLE) {
+  if (childFlags !== ChildTyps.EMPTY) {
+    if (childFlags == ChildTyps.SINGLE) {
       mount(children, el)
-    } else if (childFlags  == ChildTypes.MULTIPLE) {
+    } else if (childFlags  == ChildTyps.MULTIPLE) {
       for (let i = 0; i < children.length; i++) {
         mount(children[i], el)
       }
@@ -159,59 +159,59 @@ function mountText(vnode, container) {
 
 
 
-function patch(preVNode, nextVNode, container) {
+function patch(prevVNode, nextVNode, container) {
   const nextFlags = nextVNode.flags
-  const preFlags = preVNode.flags
+  const prevFlags = prevVNode.flags
 
-  if (preFlags !== nextFlags) {
+  if (prevFlags !== nextFlags) {
     // 直接替换
-    replaceVNode(preVNode, nextVNode, container)
+    replaceVNode(prevVNode, nextVNode, container)
   } else if (nextFlags == VNodeType.HTML) {
-    patchElement(preVNode, nextVNode, container)
+    patchElement(prevVNode, nextVNode, container)
   } else if (nextFlags == VNodeType.TEXT) {
-    patchText(preVNode, nextVNode)
+    patchText(prevVNode, nextVNode)
   }
 }
 
-function replaceVNode(preVNode, nextVNode, container) {
-  container.removeChild(preVNode.el)
+function replaceVNode(prevVNode, nextVNode, container) {
+  container.removeChild(prevVNode.el)
   mount(nextVNode, container)
 }
 
-function patchElement(preVNode, nextVNode, container) {
+function patchElement(prevVNode, nextVNode, container) {
   // 如果新旧 VNode 描述的是不同的标签，则调用 replaceVNode 函数使用新的 VNode 替换旧的 VNode
-  if (preVNode.tag !== nextVNode.tag) {
-    replaceVNode(preVNode, nextVNode, container)
+  if (prevVNode.tag !== nextVNode.tag) {
+    replaceVNode(prevVNode, nextVNode, container)
     return
   }
 
   // 拿到 el 元素，注意这时要让 nextVNode.el 也引用该元素
-  const el = (nextVNode.el = preVNode.el)
-  const preData = preVNode.data
+  const el = (nextVNode.el = prevVNode.el)
+  const prevData = prevVNode.data
   const nextData = nextVNode.data
 
   if (nextData) {
     for (let key in nextData) {
-      const preValue = preData[key]
+      const prevValue = prevData[key]
       const nextValue = nextData[key]
-      patchData(el, key, preValue, nextValue)
+      patchData(el, key, prevValue, nextValue)
     }
   }
   // 删除
-  if (preData) {
-    for (let key in preData) {
-      const preValue = preData[key]
-      if (preValue && !nextData.hasOwnProperty(key)) {
-        patchData(el, key, preValue, null)
+  if (prevData) {
+    for (let key in prevData) {
+      const prevValue = prevData[key]
+      if (prevValue && !nextData.hasOwnProperty(key)) {
+        patchData(el, key, prevValue, null)
       }
     }
   }
 
   // 调用 patchChildren 函数递归的更新子节点
   patchChildren(
-    preVNode.childFlags, // 旧的 VNode 子节点的类型
+    prevVNode.childFlags, // 旧的 VNode 子节点的类型
     nextVNode.childFlags, // 新的 VNode 子节点的类型
-    preVNode.children, // 旧的 VNode 子节点
+    prevVNode.children, // 旧的 VNode 子节点
     nextVNode.children, // 新的 VNode 子节点
     el // 当前标签元素，即这些子节点的父节点
   )
@@ -226,13 +226,13 @@ function patchChildren(
 ) {
   switch (prevChildFlags) {
     // 旧的 children 是单个子节点，会执行该 case 语句块
-    case ChildTypes.SINGLE:
+    case ChildTyps.SINGLE:
       switch (nextChildFlags) {
-        case ChildTypes.SINGLE:
+        case ChildTyps.SINGLE:
           // 新的 children 也是单个子节点时，会执行该 case 语句块
           patch(prevChildren, nextChildren, container)
           break
-        case ChildTypes.EMPTY:
+        case ChildTyps.EMPTY:
           // 新的 children 中没有子节点时，会执行该 case 语句块
           container.removeChild(prevChildren.el)
           break
@@ -246,13 +246,13 @@ function patchChildren(
       }
       break
     // 旧的 children 中没有子节点时，会执行该 case 语句块
-    case ChildTypes.EMPTY:
+    case ChildTyps.EMPTY:
       switch (nextChildFlags) {
-        case ChildTypes.SINGLE:
+        case ChildTyps.SINGLE:
           // 新的 children 是单个子节点时，会执行该 case 语句块
           mount(nextChildren, container)
           break
-        case ChildTypes.EMPTY:
+        case ChildTyps.EMPTY:
           // 新的 children 中没有子节点时，会执行该 case 语句块
           break
         default:
@@ -266,13 +266,13 @@ function patchChildren(
     // 旧的 children 中有多个子节点时，会执行该 case 语句块
     default:
       switch (nextChildFlags) {
-        case ChildTypes.SINGLE:
+        case ChildTyps.SINGLE:
           for (let i = 0; i < prevChildren.length; i++) {
             container.removeChild(prevChildren[i].el)
           }
           mount(nextChildren, container)
           break
-        case ChildTypes.EMPTY:
+        case ChildTyps.EMPTY:
           for (let i = 0; i < prevChildren.length; i++) {
             container.removeChild(prevChildren[i].el)
           }
@@ -285,14 +285,16 @@ function patchChildren(
             let j = 0,
               find = false
             for (j; j < prevChildren.length; j++) {
-              const preVNode = prevChildren[j]
-              if (nextVNode.key === preVNode.key) {
+              const prevVNode = prevChildren[j]
+              if (nextVNode.key === prevVNode.key) {
                 find = true
-                patch(preVNode, nextVNode, container)
+                patch(prevVNode, nextVNode, container)
                 if (j < lastIndex) {
                   // 需要移动
+                  // 使用nextChildren[i-1].el.nextSibling而不使用nextChildren[i]的原因是nextChildren[i]还未挂载
+                  // 而nextChildren[i-1].el已经指向container对应的节点
                   const refNode = nextChildren[i - 1].el.nextSibling
-                  container.insertBefore(preVNode.el, refNode)
+                  container.insertBefore(prevVNode.el, refNode)
                   break
                 } else {
                   // 更新 lastIndex
@@ -312,13 +314,13 @@ function patchChildren(
           }
           // 移除已经不存在的节点
           for (let i = 0; i < prevChildren.length; i++) {
-            const preVNode = prevChildren[i]
+            const prevVNode = prevChildren[i]
             const has = nextChildren.find(
-              nextVNode => nextVNode.key === preVNode.key
+              nextVNode => nextVNode.key === prevVNode.key
             )
             if (!has) {
               // 移除
-              container.removeChild(preVNode.el)
+              container.removeChild(prevVNode.el)
             }
           }
           break
@@ -327,11 +329,11 @@ function patchChildren(
   }
 }
 
-function patchText(preVNode, nextVNode) {
+function patchText(prevVNode, nextVNode) {
   // 拿到文本节点 el，同时让 nextVNode.el 指向该文本节点
-  const el = (nextVNode.el = preVNode.el)
+  const el = (nextVNode.el = prevVNode.el)
   // 只有当新旧文本内容不一致时才有必要更新
-  if (nextVNode.children !== preVNode.children) {
+  if (nextVNode.children !== prevVNode.children) {
     el.nodeValue = nextVNode.children
   }
 }
