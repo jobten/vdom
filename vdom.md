@@ -2,7 +2,13 @@
 
 ## 一. vdom
 
-虚拟DOM(Virtual DOM)是对DOM的JS抽象表示，是用来描述dom结构和关系的js对象。更新DOM之前先做diff，这样可以减少DOM的操作，提升性能。
+虚拟DOM(Virtual DOM)是对DOM的JS抽象表示，是用来描述dom结构和关系的js对象。
+
+![image-vdom](/Users/mac/Desktop/Web/vdom/vdom.png)
+
+- JS操作（如响应式改变了数据），作用的目标是虚拟DOM，然后再通过diff算法转换成正式的DOM，这样可以减少DOM的操作，提升性能，本质上是使用JavaScript运算成本替换DOM操作的执行成本。
+
+- DOM操作通过events回作用于js操作
 
 ### 1. vnode的节点类型
 
@@ -407,7 +413,7 @@ function patchElement(preVNode, nextVNode, container) {
 9. 旧孩子为多节点，新孩子也为多节点
 
    
-   
+  
    ```javascript
    let lastIndex = 0
    for (let i = 0; i < nextChildren.length; i++) {
@@ -454,45 +460,3 @@ function patchElement(preVNode, nextVNode, container) {
        }
    }
    ```
-
-## 三. 虚拟dom的实际应用
-
-### 1. vue中的虚拟dom
-
-1. vue1的原理是响应式，Object.defineProperty，每个数据修改都能通过dom去更新
-
-2. vue2中响应式的级别修改了，watcher直到组件级，组件内部使用虚拟dom
-
-3. vue中虚拟dom如何创建？
-
-   通过parse函数解析模板把template解析成语法解析树AST
-
-   代码优化，如静态节点标记
-
-   代码生成，把AST生成可执行的代码，如v-if生成对应的代码
-
-   ```html
-   <div><p v-if="show">hello</p><p v-else>world</p></div>
-   ```
-
-   to:
-
-   ```javascript
-   _c('div',[(show)?_c('p',[_v("hello")]):_c('p',[_v("world")])])// _c是新建虚拟dom
-   ```
-
-4. vue中虚拟dom如何diff？
-
-   web数组常见的修改：
-
-   1. 新增元素
-   2. 删除元素
-   3. 倒序排列一个元素
-
-   所以遍历前先做：
-
-   1. 新老排头一样，直接进行更新元素的逻辑，而不需要用数组做diff这个元素了。
-   2. 新老数组排尾一样
-   3. 老的排头和新的排尾是否一致
-   4. 老的排尾是否和新的排头是否一致
-
