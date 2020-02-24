@@ -10,7 +10,7 @@
 
 模板编译的主要目标是将模板(template)转换成渲染函数(render)
 
-![image-compile](/Users/mac/Desktop/Web/vdom/compile.png)
+![image-compile](./compile.png)
 
 ### 1.模板编译过程
 
